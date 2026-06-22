@@ -1,0 +1,16 @@
+torch
+torchvision
+ultralytics
+autodistill
+autodistill-grounding-dino
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+rq
+pillow
+imagehash
+opencv-python-headless
+python-multipart
+openrouter
+python-dotenv

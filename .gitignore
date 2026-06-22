@@ -1,0 +1,62 @@
+# ====================================================================
+# Rapid CV Pipeline — Git Exclusion Rules
+# ====================================================================
+
+# 1. OS & IDE Metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# 2. Python Environment & Caches
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# 3. Node Modules & Frontend Builds
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+build/
+.eslintcache
+
+# 4. Local Environment & Secret Keys
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+backend/.env
+
+# 5. Local Databases & Logs
+*.db
+*.sqlite
+*.sqlite3
+backend/app/*.db
+backend/app/*.sqlite
+*.log
+backend/storage/tasks/
+
+# 6. Local Storage, Datasets & Model Weights
+# The Storage directory hosts uploaded project images, annotation JSONs, splits, and training weights.
+backend/storage/
+backend/runs/
+backend/yolo_train/
+*.pt
+backend/*.pt
+backend/yolov8n.pt
+
+# 7. Local Testing Samples (Generated/Downloaded)
+backend/samples/
+backend/real_samples/
