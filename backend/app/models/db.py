@@ -55,6 +55,7 @@ class Label(Base):
     bbox_json = Column(Text, nullable=False)
     confidence = Column(Float, nullable=True)  # confidence from auto-labeling, NULL if human
     source = Column(String, nullable=False, default="auto")  # auto, human
+    segmentation_path = Column(Text, nullable=True)  # Moondream SVG segmentation path
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     
     image = relationship("Image", back_populates="labels")
@@ -126,8 +127,24 @@ class Job(Base):
 
 # Helper function to get DB engine and session
 def init_db(db_path="sqlite:///storage/rapid_cv.db"):
+    import sqlite3
     engine = create_engine(db_path, connect_args={"check_same_thread": False})
     Base.metadata.create_all(engine)
+    
+    # Safely migrate and add segmentation_path if missing (SQLite)
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            # Check if column exists
+            result = conn.execute(text("PRAGMA table_info(labels)"))
+            columns = [row[1] for row in result.fetchall()]
+            if "segmentation_path" not in columns:
+                conn.execute(text("ALTER TABLE labels ADD COLUMN segmentation_path TEXT"))
+                conn.commit()
+                print("✔ Database Migration: Added segmentation_path column to labels table.")
+    except Exception as e:
+        print(f"Database migration notice: {e}")
+        
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     return engine, SessionLocal
 

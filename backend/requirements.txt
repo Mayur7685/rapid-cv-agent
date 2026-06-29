@@ -14,3 +14,4 @@ opencv-python-headless
 python-multipart
 openrouter
 python-dotenv
+moondream

@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, ArrowLeft, Cpu, Check, Edit2, Tag, X, Sparkles } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 
 const API_BASE = 'http://127.0.0.1:8000/api';
 
@@ -69,7 +73,7 @@ function AiMessage({ text, isTyping = false }) {
 
   return (
     <div className="chat-message flex items-start gap-3">
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center flex-shrink-0 shadow-md">
+      <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center flex-shrink-0 shadow-md">
         <Cpu className="w-4 h-4 text-white" />
       </div>
       <div className="chat-bubble-ai">
@@ -84,8 +88,8 @@ function UserMessage({ text }) {
   return (
     <div className="chat-message flex items-start gap-3 justify-end">
       <div className="chat-bubble-user">{text}</div>
-      <div className="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center flex-shrink-0">
-        <span className="text-white text-xs font-bold">U</span>
+      <div className="w-8 h-8 rounded-full bg-[#eab308] flex items-center justify-center flex-shrink-0 shadow-sm">
+        <span className="text-black text-xs font-black">U</span>
       </div>
     </div>
   );
@@ -94,7 +98,7 @@ function UserMessage({ text }) {
 function TypingIndicator() {
   return (
     <div className="chat-message flex items-start gap-3">
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center flex-shrink-0 shadow-md">
+      <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center flex-shrink-0 shadow-md">
         <Cpu className="w-4 h-4 text-white" />
       </div>
       <div className="chat-bubble-ai py-3 px-4">
@@ -261,12 +265,14 @@ export default function ChatOnboarding({ onComplete, onCancel }) {
       <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full px-4 py-6 gap-4">
 
         {/* Back button */}
-        <button
+        <Button
           onClick={onCancel}
-          className="self-start flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors font-medium"
+          variant="ghost"
+          size="sm"
+          className="self-start flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors font-medium cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Home
-        </button>
+        </Button>
 
         {/* Chat window */}
         <div className="flex-1 space-y-4 overflow-y-auto pr-1">
@@ -281,87 +287,96 @@ export default function ChatOnboarding({ onComplete, onCancel }) {
           {/* Class confirmation widget */}
           {step === STEPS.CONFIRM && !isAiTyping && detectedClasses.length > 0 && (
             <div className="chat-message animate-slideInUp ml-11">
-              <div className="bg-white border border-purple-200 rounded-2xl p-5 shadow-sm">
+              <Card className="bg-white border border-neutral-200 rounded-2xl p-5 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                     Detected Classes
                   </span>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setEditingClasses(!editingClasses)}
-                    className="flex items-center gap-1 text-xs text-purple-600 hover:text-purple-800 transition-colors font-semibold"
+                    className="flex items-center gap-1 text-xs text-yellow-700 hover:text-yellow-800 transition-colors font-semibold cursor-pointer h-7"
                   >
                     <Edit2 className="w-3 h-3" />
                     {editingClasses ? 'Done' : 'Edit'}
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="flex flex-wrap gap-2 mb-4">
                   {detectedClasses.map(cls => (
-                    <span
+                    <Badge
                       key={cls}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-full text-sm font-semibold text-purple-700"
+                      variant="secondary"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 border border-yellow-250 rounded-full text-sm font-semibold text-yellow-750"
                     >
-                      <span className="w-2 h-2 rounded-full bg-purple-400" />
+                      <span className="w-2 h-2 rounded-full bg-yellow-500" />
                       {cls}
                       {editingClasses && (
-                        <button onClick={() => handleRemoveClass(cls)} className="ml-0.5 text-purple-400 hover:text-red-500 transition-colors">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveClass(cls)}
+                          className="p-0 h-4 w-4 ml-0.5 text-yellow-600 hover:text-red-500 transition-colors cursor-pointer"
+                        >
                           <X className="w-3 h-3" />
-                        </button>
+                        </Button>
                       )}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
 
                 {editingClasses && (
                   <div className="flex gap-2 mb-4">
-                    <div className="flex-1 flex items-center gap-2 px-3 py-2 border border-purple-200 rounded-xl bg-purple-50/50">
-                      <Tag className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                    <div className="flex-1 flex items-center gap-2 px-3 py-2 border border-neutral-200 rounded-xl bg-neutral-50">
+                      <Tag className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />
                       <input
                         type="text"
                         value={newClassInput}
                         onChange={e => setNewClassInput(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && handleAddClass()}
                         placeholder="Add class..."
-                        className="flex-1 bg-transparent text-sm text-gray-800 outline-none placeholder-gray-400"
+                        className="flex-1 bg-transparent text-sm text-gray-800 outline-none placeholder-gray-400 border-none"
                       />
                     </div>
-                    <button
+                    <Button
                       onClick={handleAddClass}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-xl text-sm font-bold hover:bg-purple-700 transition-colors"
+                      className="px-4 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl text-sm font-bold cursor-pointer h-9"
                     >
                       Add
-                    </button>
+                    </Button>
                   </div>
                 )}
 
                 <div className="flex gap-2">
-                  <button
+                  <Button
                     onClick={handleConfirmClasses}
                     disabled={detectedClasses.length === 0}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-[#7c3aed] text-white rounded-xl text-sm font-bold hover:bg-[#6d28d9] transition-colors disabled:opacity-50 shadow-md shadow-purple-500/20"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-[#eab308] text-black font-extrabold rounded-xl text-sm hover:bg-[#ca8a04] transition-colors disabled:opacity-50 shadow-md shadow-yellow-500/10 cursor-pointer h-9"
                   >
                     <Check className="w-4 h-4" />
                     Yes, continue
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => {
                       setStep(STEPS.ASK_GOAL);
                       setMessages(prev => prev.filter((_, i) => i === 0));
                       setDetectedClasses([]);
                     }}
-                    className="px-5 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors"
+                    variant="outline"
+                    className="px-5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors cursor-pointer h-9"
                   >
                     Try again
-                  </button>
+                  </Button>
                 </div>
-              </div>
+              </Card>
             </div>
           )}
 
           {/* Creating spinner */}
           {step === STEPS.READY && creating && (
             <div className="chat-message animate-slideInUp ml-11 flex items-center gap-3">
-              <div className="flex items-center gap-2 px-4 py-3 bg-purple-50 border border-purple-200 rounded-2xl text-sm font-semibold text-purple-700">
+              <div className="flex items-center gap-2 px-4 py-3 bg-yellow-50 border border-yellow-250 rounded-2xl text-sm font-semibold text-yellow-800">
                 <Sparkles className="w-4 h-4 animate-pulse" />
                 Creating your project...
               </div>
@@ -381,13 +396,14 @@ export default function ChatOnboarding({ onComplete, onCancel }) {
         {step === STEPS.ASK_GOAL && messages.length <= 1 && !isAiTyping && (
           <div className="flex flex-wrap gap-2">
             {suggestionPhrases.map((phrase) => (
-              <button
+              <Button
                 key={phrase}
+                variant="outline"
                 onClick={() => { setInput(phrase); setTimeout(() => inputRef.current?.focus(), 0); }}
-                className="px-3 py-2 bg-white border border-purple-100 rounded-full text-xs text-gray-600 hover:border-purple-300 hover:text-purple-700 transition-all font-medium shadow-sm"
+                className="px-3 py-1.5 h-auto bg-white border border-neutral-200 rounded-full text-xs text-gray-600 hover:border-yellow-400 hover:text-yellow-700 transition-all font-medium shadow-sm cursor-pointer"
               >
                 {phrase}
-              </button>
+              </Button>
             ))}
           </div>
         )}
@@ -395,7 +411,7 @@ export default function ChatOnboarding({ onComplete, onCancel }) {
         {/* Input bar */}
         {(step === STEPS.ASK_GOAL || step === STEPS.ASK_NAME) && (
           <div className="chat-input-bar">
-            <input
+            <Input
               ref={inputRef}
               type="text"
               value={input}
@@ -407,15 +423,16 @@ export default function ChatOnboarding({ onComplete, onCancel }) {
                   : 'Enter a project name...'
               }
               disabled={isAiTyping || creating}
+              className="flex-grow border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 text-sm py-2"
               autoFocus
             />
-            <button
+            <Button
               onClick={handleSend}
               disabled={!input.trim() || isAiTyping || creating}
-              className="w-9 h-9 bg-[#7c3aed] disabled:bg-purple-300 text-white rounded-full flex items-center justify-center transition-all hover:bg-[#6d28d9] active:scale-95 flex-shrink-0"
+              className="w-9 h-9 p-0 bg-[#eab308] disabled:bg-neutral-200 disabled:text-neutral-400 text-black font-bold rounded-full flex items-center justify-center transition-all hover:bg-[#ca8a04] cursor-pointer"
             >
               <Send className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         )}
       </div>

@@ -11,7 +11,15 @@ def get_db_session():
     _, SessionLocal = init_db()
     return SessionLocal()
 
-def background_autolabel_task(job_id: str, project_id: int, use_mock: bool = False):
+
+def background_autolabel_task(
+    job_id: str,
+    project_id: int,
+    model: str = "grounding_dino",
+    use_mock: bool = False,
+    box_threshold: float = 0.35,     # forwarded from API request
+    nms_iou_threshold: float = 0.45, # forwarded from API request
+):
     db = get_db_session()
     try:
         # Update job status to running
@@ -22,23 +30,33 @@ def background_autolabel_task(job_id: str, project_id: int, use_mock: bool = Fal
         job.progress = 10
         db.commit()
 
-        # Step 1: Run Auto-Labeling
-        print(f"[Job {job_id}] Running autolabel agent...")
-        run_autolabel_agent(db=db, project_id=project_id, use_mock=use_mock)
-        
+        # Step 1: Run Auto-Labeling with Grounding DINO
+        print(f"[Job {job_id}] Running Grounding DINO autolabel "
+              f"(box_threshold={box_threshold}, nms_iou={nms_iou_threshold})...")
+        run_autolabel_agent(
+            db=db,
+            project_id=project_id,
+            model=model,
+            use_mock=use_mock,
+            box_threshold=box_threshold,
+            text_threshold=0.25,           # fixed sensible default
+            nms_iou_threshold=nms_iou_threshold,
+        )
+
         job.progress = 60
         db.commit()
 
-        # Step 2: Run QC / Review (auto-approve is False by default so user reviews in UI)
-        # Note: Since the UI will let the user review boxes, this step just buckets them
-        # so they show up as pending/approved in the review screen.
-        print(f"[Job {job_id}] Running QC agent...")
+        # Step 2: QC / NMS pass
+        # Moondream assigns a fixed proposal confidence of 0.90 to every detection.
+        # We set QC conf_threshold to 0.85 so those boxes pass as auto_approved
+        # (below 0.85 will be flagged as needs_review for human inspection).
+        print(f"[Job {job_id}] Running QC agent (conf_threshold=0.85, nms_iou={nms_iou_threshold})...")
         run_qc_agent(
             db=db,
             project_id=project_id,
-            conf_threshold=0.80,
-            nms_iou_threshold=0.45,
-            auto_approve_all=False # UI is the human-in-the-loop step!
+            conf_threshold=0.85,                 # ← aligns with Moondream's 0.90 output
+            nms_iou_threshold=nms_iou_threshold,
+            auto_approve_all=False,              # UI is the human-in-the-loop step
         )
 
         job.status = "completed"
@@ -93,12 +111,11 @@ def background_train_task(
             train_ratio=0.8,
             apply_offline_aug=True
         )
-        
+
         job.progress = 20
         db.commit()
 
         # Step 2: Training wrapper callback to update Job progress smoothly
-        # We hook into training progress
         def session_factory():
             return SessionLocal()
 
@@ -110,8 +127,7 @@ def background_train_task(
             epochs=epochs,
             use_mock=use_mock
         )
-        
-        # Training completed
+
         run_id = train_result["run_id"]
         job.progress = 80
         db.commit()
@@ -124,7 +140,7 @@ def background_train_task(
             map50_threshold=threshold,
             use_mock=use_mock
         )
-        
+
         job.progress = 90
         db.commit()
 
@@ -136,7 +152,7 @@ def background_train_task(
                 eval_report_id=eval_result["report_id"],
                 use_mock=use_mock
             )
-            
+
         job.status = "completed"
         job.progress = 100
         db.commit()

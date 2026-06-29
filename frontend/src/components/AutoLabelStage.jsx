@@ -6,8 +6,8 @@ const API_BASE = 'http://127.0.0.1:8000/api';
 const STATIC_BASE = 'http://127.0.0.1:8000/static';
 
 const CLASS_COLORS = [
-  '#7c3aed', '#3b82f6', '#10b981', '#f97316',
-  '#ec4899', '#06b6d4', '#eab308', '#ef4444'
+  '#eab308', '#3b82f6', '#10b981', '#f97316',
+  '#ec4899', '#06b6d4', '#7c3aed', '#ef4444'
 ];
 
 export default function AutoLabelStage({
@@ -20,7 +20,8 @@ export default function AutoLabelStage({
 
   const [activeImageId, setActiveImageId] = useState(null);
   const [nlpPrompt, setNlpPrompt] = useState('');
-  const [confidence, setConfidence] = useState(0.50);
+  const [confidence, setConfidence] = useState(0.35);
+  const [nmsIou, setNmsIou] = useState(0.45);
   const [running, setRunning] = useState(false);
   const [runJobId, setRunJobId] = useState(null);
   const [jobProgress, setJobProgress] = useState(0);
@@ -85,7 +86,12 @@ export default function AutoLabelStage({
       const res = await fetch(`${API_BASE}/projects/${projectId}/autolabel`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ use_mock: useMock })
+        body: JSON.stringify({
+          use_mock: useMock,
+          model: 'moondream',
+          box_threshold: confidence,
+          nms_iou: nmsIou,
+        })
       });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
@@ -148,7 +154,7 @@ export default function AutoLabelStage({
               onClick={() => setActiveImageId(img.id)}
               className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${
                 isActive
-                  ? 'border-[#7c3aed] shadow-lg shadow-purple-500/30'
+                  ? 'border-[#eab308] shadow-lg shadow-yellow-500/20'
                   : 'border-transparent opacity-60 hover:opacity-100 hover:border-white/20'
               }`}
             >
@@ -228,7 +234,7 @@ export default function AutoLabelStage({
               </div>
               <div className="w-full bg-white/[0.08] rounded-full h-1.5">
                 <div
-                  className="h-1.5 bg-[#7c3aed] rounded-full transition-all duration-500"
+                  className="h-1.5 bg-[#eab308] rounded-full transition-all duration-500"
                   style={{ width: `${jobProgress}%` }}
                 />
               </div>
@@ -255,11 +261,11 @@ export default function AutoLabelStage({
                 onChange={e => setNlpPrompt(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleRunPrompt()}
                 placeholder="Enter objects: person, helmet..."
-                className="flex-1 px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 placeholder-gray-300 text-gray-700 transition-all"
+                className="flex-1 px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 placeholder-gray-300 text-gray-700 transition-all"
               />
               <button
                 onClick={handleRunPrompt}
-                className="px-3 py-2 bg-[#7c3aed] text-white rounded-xl text-xs font-bold hover:bg-[#6d28d9] transition-colors flex items-center gap-1"
+                className="px-3 py-2 bg-[#eab308] text-black font-extrabold rounded-xl text-xs hover:bg-[#ca8a04] transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <Search className="w-3 h-3" />
               </button>
@@ -281,22 +287,51 @@ export default function AutoLabelStage({
             ))}
           </div>
 
-          {/* Confidence slider */}
+          {/* Model badge — Moondream only */}
+          <div className="space-y-2">
+            <span className="text-xs font-semibold text-gray-500">Auto-Label Engine</span>
+            <div className="flex items-center gap-2 px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-xl">
+              <div className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" />
+              <span className="text-xs font-bold text-yellow-800">Moondream 2 VLM</span>
+              <span className="ml-auto text-[10px] text-yellow-600 font-medium">local · MPS</span>
+            </div>
+          </div>
+
+          {/* Detection Threshold slider */}
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-xs font-semibold text-gray-500">Confidence</span>
-              <span className="text-xs font-bold text-purple-600">{Math.round(confidence * 100)}%</span>
+              <span className="text-xs font-semibold text-gray-500">Detection Threshold</span>
+              <span className="text-xs font-bold text-yellow-700">{Math.round(confidence * 100)}%</span>
             </div>
             <input
               type="range"
-              min={0.1} max={1.0} step={0.05}
+              min={0.10} max={0.80} step={0.05}
               value={confidence}
               onChange={e => setConfidence(parseFloat(e.target.value))}
-              className="w-full h-1.5 accent-purple-600 bg-gray-200 rounded-lg cursor-pointer"
+              className="w-full h-1.5 accent-yellow-500 bg-gray-200 rounded-lg cursor-pointer"
             />
+            <p className="text-[10px] text-gray-400 leading-relaxed">
+              Filters tiny/hallucinated boxes. Lower = more boxes kept. Raise to reduce false positives.
+            </p>
           </div>
 
-
+          {/* NMS IoU slider */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-semibold text-gray-500">NMS IoU Threshold</span>
+              <span className="text-xs font-bold text-yellow-700">{Math.round(nmsIou * 100)}%</span>
+            </div>
+            <input
+              type="range"
+              min={0.10} max={0.80} step={0.05}
+              value={nmsIou}
+              onChange={e => setNmsIou(parseFloat(e.target.value))}
+              className="w-full h-1.5 accent-yellow-500 bg-gray-200 rounded-lg cursor-pointer"
+            />
+            <p className="text-[10px] text-gray-400 leading-relaxed">
+              Controls duplicate-box removal. Lower = more aggressive suppression.
+            </p>
+          </div>
 
           {/* Progress summary */}
           <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
@@ -318,7 +353,7 @@ export default function AutoLabelStage({
           <button
             onClick={handleRunAll}
             disabled={running || images.length === 0}
-            className="w-full py-3 bg-[#7c3aed] hover:bg-[#6d28d9] disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-purple-500/20"
+            className="w-full py-3 bg-[#eab308] hover:bg-[#ca8a04] disabled:bg-gray-200 disabled:text-gray-400 text-black font-extrabold text-sm rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-yellow-500/10 cursor-pointer"
           >
             {running ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Running...</>

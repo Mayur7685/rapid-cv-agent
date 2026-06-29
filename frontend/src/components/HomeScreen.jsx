@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, FolderOpen, ArrowRight, Cpu, Loader2, Zap, Eye, BarChart3, Upload } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const API_BASE = 'http://127.0.0.1:8000/api';
 
@@ -25,17 +28,17 @@ const SAMPLE_LABELS = [
 ];
 
 const STATUS_META = {
-  created:        { label: 'Setup',        color: 'badge-gray',   next: 'upload' },
-  labeling:       { label: 'Labeling',     color: 'badge-purple', next: 'autolabel' },
-  needs_review:   { label: 'Review',       color: 'badge-amber',  next: 'review' },
-  reviewed:       { label: 'Ready',        color: 'badge-green',  next: 'augment' },
-  ready_to_train: { label: 'Ready',        color: 'badge-green',  next: 'augment' },
-  augmenting:     { label: 'Augmenting',   color: 'badge-purple', next: 'train' },
-  training:       { label: 'Training',     color: 'badge-purple', next: 'train' },
-  trained:        { label: 'Trained',      color: 'badge-green',  next: 'test' },
-  ready:          { label: 'Deployed ✓',   color: 'badge-green',  next: 'test' },
-  needs_data:     { label: 'Needs Data',   color: 'badge-amber',  next: 'upload' },
-  failed:         { label: 'Failed',       color: 'badge-red',    next: 'train' },
+  created:        { label: 'Setup',        variant: 'secondary', next: 'upload' },
+  labeling:       { label: 'Labeling',     variant: 'default',   next: 'autolabel' },
+  needs_review:   { label: 'Review',       variant: 'outline',   next: 'review' },
+  reviewed:       { label: 'Ready',        variant: 'success',   next: 'augment' },
+  ready_to_train: { label: 'Ready',        variant: 'success',   next: 'augment' },
+  augmenting:     { label: 'Augmenting',   variant: 'default',   next: 'train' },
+  training:       { label: 'Training',     variant: 'default',   next: 'train' },
+  trained:        { label: 'Trained',      variant: 'success',   next: 'test' },
+  ready:          { label: 'Deployed',     variant: 'success',   next: 'test' },
+  needs_data:     { label: 'Needs Data',   variant: 'destructive', next: 'upload' },
+  failed:         { label: 'Failed',       variant: 'destructive', next: 'train' },
 };
 
 export default function HomeScreen({ onNewProject, onOpenProject }) {
@@ -89,18 +92,18 @@ export default function HomeScreen({ onNewProject, onOpenProject }) {
       <section className="flex-1 flex flex-col items-center justify-center px-6 pt-16 pb-8 relative overflow-hidden">
         {/* Soft radial gradient bg */}
         <div className="absolute inset-0 pointer-events-none" style={{
-          background: 'radial-gradient(ellipse 80% 60% at 50% 30%, rgba(124,58,237,0.08) 0%, transparent 70%)'
+          background: 'radial-gradient(ellipse 80% 60% at 50% 30%, rgba(234,179,8,0.04) 0%, transparent 70%)'
         }} />
 
         <div className="relative z-10 flex flex-col items-center text-center" style={{ maxWidth: 560, width: '100%' }}>
-          <div className="flex items-center gap-2 mb-6 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-full text-xs font-semibold text-purple-600">
+          <div className="flex items-center gap-2 mb-6 px-3 py-1.5 bg-yellow-50 border border-yellow-250 rounded-full text-xs font-semibold text-yellow-700">
             <Zap className="w-3.5 h-3.5" />
-            Powered by Grounding DINO + YOLOv8
+            VLM-Augmented Agentic Vision Platform
           </div>
 
           <h1 className="text-4xl md:text-5xl font-black text-gray-900 leading-tight tracking-tight mb-4">
             Build a{' '}
-            <span className="text-[#7c3aed]">Computer Vision Model</span>
+            <span className="text-[#eab308]">Computer Vision Model</span>
             {' '}in Minutes
           </h1>
 
@@ -110,14 +113,15 @@ export default function HomeScreen({ onNewProject, onOpenProject }) {
           </p>
 
           {/* Primary CTA */}
-          <button
+          <Button
             onClick={onNewProject}
-            className="group flex items-center gap-3 px-8 py-4 bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-base rounded-2xl shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
+            size="lg"
+            className="group flex items-center gap-3 bg-[#eab308] hover:bg-[#ca8a04] text-black font-extrabold rounded-2xl shadow-lg shadow-yellow-500/10 hover:shadow-yellow-500/20 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
           >
             <Plus className="w-5 h-5" />
             Start New Project
             <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-          </button>
+          </Button>
 
           {/* Feature pills */}
           <div className="flex flex-wrap justify-center gap-3 mt-8">
@@ -127,13 +131,55 @@ export default function HomeScreen({ onNewProject, onOpenProject }) {
               { icon: BarChart3, text: 'Live mAP Metrics' },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-xs font-semibold text-gray-600 shadow-sm">
-                <Icon className="w-3.5 h-3.5 text-purple-500" />
+                <Icon className="w-3.5 h-3.5 text-yellow-600" />
                 {text}
               </div>
             ))}
           </div>
         </div>
       </section>
+
+      {/* ── Minimal Marketing Feature Section ── */}
+      <section className="px-6 pb-12 max-w-5xl mx-auto w-full border-b border-neutral-200 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="flex gap-4">
+            <div className="w-10 h-10 rounded-xl bg-yellow-50 flex items-center justify-center text-yellow-700 flex-shrink-0">
+              <Zap className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-neutral-800 mb-1">Local VLM Auto-Labeling</h3>
+              <p className="text-xs text-neutral-500 leading-relaxed">
+                Detect and boundary-box objects automatically using offline Moondream zero-shot models.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            <div className="w-10 h-10 rounded-xl bg-yellow-50 flex items-center justify-center text-yellow-700 flex-shrink-0">
+              <BarChart3 className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-neutral-800 mb-1">Active Learning Loop</h3>
+              <p className="text-xs text-neutral-500 leading-relaxed">
+                Feed edge camera failures back into human review to continuously fine-tune model weights.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            <div className="w-10 h-10 rounded-xl bg-yellow-50 flex items-center justify-center text-yellow-700 flex-shrink-0">
+              <Cpu className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-neutral-800 mb-1">1-Click Edge Deploy</h3>
+              <p className="text-xs text-neutral-500 leading-relaxed">
+                Instantly retrieve PyTorch weights or query local REST APIs for construction/palleting tasks.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
 
       {/* ── Projects Section ── */}
       <section className="px-6 pb-10 max-w-5xl mx-auto w-full">
@@ -145,54 +191,58 @@ export default function HomeScreen({ onNewProject, onOpenProject }) {
 
         {loading ? (
           <div className="flex justify-center py-10">
-            <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
+            <Loader2 className="w-6 h-6 animate-spin text-yellow-500" />
           </div>
         ) : projects.length > 0 ? (
           <>
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
-                <FolderOpen className="w-4.5 h-4.5 text-purple-500" />
+                <FolderOpen className="w-4.5 h-4.5 text-yellow-600" />
                 Your Projects
               </h2>
-              <button
+              <Button
                 onClick={onNewProject}
-                className="flex items-center gap-1.5 text-xs font-semibold text-purple-600 hover:text-purple-800 transition-colors"
+                variant="ghost"
+                size="sm"
+                className="flex items-center gap-1 text-yellow-700 hover:text-yellow-800 text-xs font-semibold cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 New
-              </button>
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {projects.map((p) => {
-                const meta = STATUS_META[p.status] || { label: p.status, color: 'badge-gray', next: 'review' };
+                const meta = STATUS_META[p.status] || { label: p.status, variant: 'outline', next: 'review' };
                 return (
-                  <button
+                  <Card
                     key={p.id}
                     onClick={() => onOpenProject(p.id, p.name, p.classes, meta.next)}
-                    className="group text-left p-5 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:border-purple-300 transition-all duration-200 hover:-translate-y-0.5"
+                    className="group text-left p-5 cursor-pointer hover:shadow-md hover:border-yellow-400 transition-all duration-200 hover:-translate-y-0.5 bg-white"
                   >
                     {/* Colorful top bar */}
-                    <div className="w-full h-1.5 rounded-full bg-gradient-to-r from-violet-400 to-purple-600 mb-4 opacity-70" />
+                    <div className="w-full h-1.5 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-650 mb-4 opacity-70" />
 
                     <div className="flex items-start justify-between mb-3">
                       <h3 className="text-sm font-bold text-gray-900 leading-snug line-clamp-2 max-w-[160px]">
                         {p.name}
                       </h3>
-                      <span className={`badge ${meta.color} ml-2 shrink-0`}>{meta.label}</span>
+                      <Badge variant={meta.variant} className="shrink-0 font-bold tracking-tight text-[10px] py-0.5">
+                        {meta.label}
+                      </Badge>
                     </div>
 
                     {/* Classes */}
                     <div className="flex flex-wrap gap-1.5 mb-4">
                       {(p.classes || []).slice(0, 3).map(cls => (
-                        <span key={cls} className="px-2 py-0.5 bg-purple-50 text-purple-600 border border-purple-100 rounded-full text-[11px] font-semibold">
+                        <Badge key={cls} variant="outline" className="px-2 py-0.5 bg-yellow-50 text-yellow-700 border border-yellow-100 rounded-full text-[10px] font-semibold">
                           {cls}
-                        </span>
+                        </Badge>
                       ))}
                       {(p.classes || []).length > 3 && (
-                        <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-[11px]">
+                        <Badge variant="outline" className="px-2 py-0.5 bg-gray-50 text-gray-500 rounded-full text-[10px]">
                           +{p.classes.length - 3} more
-                        </span>
+                        </Badge>
                       )}
                     </div>
 
@@ -204,12 +254,12 @@ export default function HomeScreen({ onNewProject, onOpenProject }) {
                       {p.mAP ? (
                         <span className="text-emerald-600 font-bold">mAP {p.mAP}</span>
                       ) : (
-                        <span className="flex items-center gap-1 text-purple-500 group-hover:text-purple-700 transition-colors font-semibold">
+                        <span className="flex items-center gap-1 text-yellow-600 group-hover:text-yellow-700 transition-colors font-semibold">
                           Continue <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                         </span>
                       )}
                     </div>
-                  </button>
+                  </Card>
                 );
               })}
             </div>

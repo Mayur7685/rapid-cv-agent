@@ -180,15 +180,15 @@ export default function TrainingMonitor({
                       <p className="text-white font-bold text-sm">{opt.full}</p>
                       <p className="text-white/40 text-[11px]">{opt.size}</p>
                     </div>
-                    {opt.badge && (
-                      <span className="badge badge-purple text-[9px]">{opt.badge}</span>
+                     {opt.badge && (
+                      <span className="badge bg-yellow-50 border border-yellow-200 text-yellow-800 text-[9px]">{opt.badge}</span>
                     )}
                   </div>
                   <p className="text-white/40 text-[11px] mb-3">{opt.desc}</p>
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-[10px] text-white/40">
                       <span>Speed</span>
-                      <SpeedBar level={opt.speed} color="#7c3aed" />
+                      <SpeedBar level={opt.speed} color="#eab308" />
                     </div>
                     <div className="flex items-center justify-between text-[10px] text-white/40">
                       <span>Accuracy</span>
@@ -203,25 +203,25 @@ export default function TrainingMonitor({
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-white/60 block">
-                  Epochs: <span className="text-purple-400">{epochs}</span>
+                  Epochs: <span className="text-yellow-500">{epochs}</span>
                 </label>
                 <input
                   type="range" min={5} max={100} step={5}
                   value={epochs}
                   onChange={e => setEpochs(parseInt(e.target.value))}
-                  className="w-full h-1.5 accent-purple-500 bg-white/[0.08] rounded-lg cursor-pointer"
+                  className="w-full h-1.5 accent-yellow-500 bg-white/[0.08] rounded-lg cursor-pointer"
                 />
                 <p className="text-[10px] text-white/25">Recommended: 10–50 for small datasets</p>
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-white/60 block">
-                  mAP50 Threshold: <span className="text-purple-400">{Math.round(mapThreshold * 100)}%</span>
+                  mAP50 Threshold: <span className="text-yellow-500">{Math.round(mapThreshold * 100)}%</span>
                 </label>
                 <input
                   type="range" min={0.3} max={0.9} step={0.05}
                   value={mapThreshold}
                   onChange={e => setMapThreshold(parseFloat(e.target.value))}
-                  className="w-full h-1.5 accent-purple-500 bg-white/[0.08] rounded-lg cursor-pointer"
+                  className="w-full h-1.5 accent-yellow-500 bg-white/[0.08] rounded-lg cursor-pointer"
                 />
                 <p className="text-[10px] text-white/25">Minimum acceptable accuracy per class</p>
               </div>
@@ -236,11 +236,11 @@ export default function TrainingMonitor({
 
           {/* Training status header */}
           {isTraining && (
-            <div className="flex items-center gap-3 mb-4 p-4 bg-purple-500/10 border border-purple-500/30 rounded-2xl">
-              <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
+            <div className="flex items-center gap-3 mb-4 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-2xl">
+              <Loader2 className="w-5 h-5 animate-spin text-yellow-500" />
               <div className="flex-1">
                 <p className="text-white font-bold text-sm">Training in progress...</p>
-                <p className="text-purple-400 text-xs">Epoch {latestRun?.epoch || 0} / {epochs} · Loss: {latestRun?.loss?.toFixed(4) || '—'} · mAP50: {latestRun?.map50 != null ? `${(latestRun.map50 * 100).toFixed(1)}%` : '—'}</p>
+                <p className="text-yellow-500 text-xs">Epoch {latestRun?.epoch || 0} / {epochs} · Loss: {latestRun?.loss?.toFixed(4) || '—'} · mAP50: {latestRun?.map50 != null ? `${(latestRun.map50 * 100).toFixed(1)}%` : '—'}</p>
               </div>
             </div>
           )}
@@ -369,7 +369,7 @@ export default function TrainingMonitor({
               </button>
               <button
                 onClick={handleStartTraining}
-                className="btn-primary flex items-center gap-2 text-sm flex-1 justify-center shadow-lg shadow-purple-500/25"
+                className="btn-primary flex items-center gap-2 text-sm flex-1 justify-center shadow-lg shadow-yellow-500/10"
               >
                 <Play className="w-4 h-4" /> Start Training
               </button>
@@ -394,7 +394,7 @@ export default function TrainingMonitor({
       </div>
 
       {/* ── Right guidance panel ── */}
-      <aside className="w-64 guidance-panel p-5 flex flex-col gap-5 overflow-y-auto">
+      <aside className="w-64 guidance-panel p-5 flex flex-col gap-5 overflow-y-auto bg-white border-l border-gray-100">
         <div>
           <h3 className="text-sm font-bold text-gray-800 mb-2">Training Status</h3>
           {!isTraining && !isCompleted && !latestRun && (
@@ -402,11 +402,11 @@ export default function TrainingMonitor({
           )}
           {isTraining && latestRun && (
             <div className="space-y-2">
-              <div className="p-3 bg-purple-50 border border-purple-100 rounded-xl">
-                <p className="text-xs font-bold text-purple-700">Epoch {latestRun.epoch}</p>
-                <p className="text-[10px] text-purple-500 mt-0.5">Loss: {latestRun.loss?.toFixed(4)} · mAP: {((latestRun.map50 || 0) * 100).toFixed(1)}%</p>
-                <div className="w-full h-1 bg-purple-100 rounded-full mt-2">
-                  <div className="h-1 bg-purple-500 rounded-full" style={{ width: `${Math.min(100, (latestRun.epoch / epochs) * 100)}%` }} />
+              <div className="p-3 bg-yellow-50 border border-yellow-100 rounded-xl">
+                <p className="text-xs font-bold text-yellow-800">Epoch {latestRun.epoch}</p>
+                <p className="text-[10px] text-yellow-750 mt-0.5">Loss: {latestRun.loss?.toFixed(4)} · mAP: {((latestRun.map50 || 0) * 100).toFixed(1)}%</p>
+                <div className="w-full h-1 bg-yellow-100 rounded-full mt-2">
+                  <div className="h-1 bg-yellow-500 rounded-full" style={{ width: `${Math.min(100, (latestRun.epoch / epochs) * 100)}%` }} />
                 </div>
               </div>
             </div>
@@ -428,15 +428,15 @@ export default function TrainingMonitor({
             <button
               key={m.key}
               onClick={() => !isTraining && setModelSize(m.key)}
-              className={`w-full text-left p-2.5 rounded-xl mb-1.5 border transition-all text-xs ${
+              className={`w-full text-left p-2.5 rounded-xl mb-1.5 border transition-all text-xs cursor-pointer ${
                 modelSize === m.key
-                  ? 'bg-purple-50 border-purple-200 text-purple-700 font-bold'
+                  ? 'bg-yellow-50 border-yellow-250 text-yellow-800 font-bold'
                   : 'border-gray-100 text-gray-500 hover:border-gray-200'
               }`}
             >
               <div className="flex justify-between items-center">
                 <span>{m.full}</span>
-                {m.badge && <span className="text-[9px] bg-purple-100 text-purple-600 px-1.5 rounded-full font-bold">{m.badge}</span>}
+                {m.badge && <span className="text-[9px] bg-yellow-100 text-yellow-850 px-1.5 rounded-full font-bold">{m.badge}</span>}
               </div>
               <p className="text-[10px] text-gray-400 mt-0.5">{m.desc}</p>
             </button>

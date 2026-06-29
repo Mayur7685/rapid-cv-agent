@@ -4,6 +4,7 @@ import datetime
 from pathlib import Path
 from sqlalchemy.orm import Session
 from app.models.db import Project, TrainingRun, EvalReport
+from ultralytics import YOLO
 
 INFERENCE_SERVER_TEMPLATE = """import os
 import io

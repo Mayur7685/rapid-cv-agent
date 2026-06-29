@@ -1,44 +1,68 @@
 # Rapid CV Pipeline — Agentic Vision Console
 
-Rapid CV is a self-hosted computer vision pipeline accelerator designed to build, label, train, and test custom object detection models in minutes. By utilizing zero-shot foundation models (Grounding DINO) to auto-label images and active learning loops to request further data where the model struggles, it dramatically speeds up the computer vision lifecycle.
-
-The application is completely powered by **real-AI endpoints**—mock toggles have been removed. It features an Obsidian dark aesthetic, responsive viewport layouts, and seamless real-time telemetry polling.
+Rapid CV is a self-hosted computer vision pipeline accelerator that lets you build, label, train, and deploy custom object detection models in minutes — with zero cloud dependency. It uses a **local Moondream 2 VLM** running directly on Apple Silicon (MPS) or CUDA to auto-annotate images with bounding boxes, and fine-tunes a YOLOv8 model on the resulting dataset.
 
 ---
 
 ## Key Capabilities
 
-- **Zero-Shot Auto-Labeling**: Zero-shot target class proposal generation via Grounding DINO. Directly maps text categories to pixel bounding boxes without manual annotations.
-- **OpenRouter Free LLM API**: Dynamically extracts singular, lowercase class tags from natural language prompt descriptions using the official `openrouter` Python SDK client and the `openrouter/free` router.
-- **Robust Local Heuristic Fallback**: Gracefully falls back to local regex-based noun parsers if the `OPENROUTER_API_KEY` is not configured or if external API calls fail.
-- **Offline Data Augmentation**: Native PIL/numpy-based augmentations (Contrast Jitter, Random Rotation, Random 80% Center Crop, and 2x2 Grid Mosaic collage) complete with bounding box coordinate translations and boundary check logic.
-- **Real YOLOv8 Fine-Tuning**: Trains custom models locally (on CPU/MPS) using the reviewed dataset, streaming live training loss and mAP telemetry charts.
-- **Human-in-the-Loop Canvas**: Refine labels using an interactive Konva canvas editor supporting box resizing, box drawing (`W`), selection (`V`), deletion, and class re-mapping.
-- **HTML5 Webcam Capture**: Capture live snapshots directly in the console using `getUserMedia` to stage and build new training examples.
-- **Weights Download & ONNX Export**: Serves the trained custom `best.pt` model weights as a file download and supports ONNX deployment export.
+- **Local VLM Auto-Labeling**: Uses the [Moondream 2](https://moondream.ai/) vision-language model running entirely on-device (MPS / CUDA / CPU) to detect and annotate objects in images via `model.detect(image, class_name)`. Zero cloud calls, zero API keys required for auto-labeling.
+- **Precision/Recall Controls**: Two sliders in the UI — **Detection Threshold** (box size filter to suppress hallucinations) and **NMS IoU Threshold** (duplicate box suppression) — give fine-grained control over the auto-label quality.
+- **OpenRouter LLM Class Extraction**: Dynamically extracts singular, lowercase class tags from natural language project descriptions using the `openrouter` Python SDK. Falls back to local regex parsing if no API key is configured.
+- **Interactive AI Onboarding Chat**: Conversational interface guides users through project setup, class definition, and project naming before entering the pipeline.
+- **Human-in-the-Loop Canvas**: Refine auto-generated labels using a Konva-powered canvas editor with box draw (`W`), select (`V`), resize, delete, class reassignment (keys `1–9`), and per-image approval workflow.
+- **HTML5 Webcam Capture**: Capture live snapshots directly in the browser using `getUserMedia` to add real-time training examples.
+- **Offline Data Augmentation**: PIL/numpy-based augmentations — Contrast Jitter, Random Rotation, Center Crop, 2×2 Mosaic — with automatic bounding box coordinate translation.
+- **Real YOLOv8 Fine-Tuning**: Trains custom YOLOv8n/s/m models locally, with live epoch-by-epoch loss and mAP telemetry streamed to the UI via Recharts.
+- **Test Inference Sandbox**: Upload an image after training to run live inference, adjust confidence/overlap/opacity sliders, and visualise bounding box predictions directly on the canvas.
+- **Weights Download & ONNX Export**: Download `best.pt` PyTorch weights or export to ONNX for edge deployment, along with a generated `MODEL_CARD.md` and ready-to-run `inference_server.py`.
+- **Monochrome + Yellow UI Theme**: Built with React + shadcn/ui components, Tailwind CSS v4, and a clean monochrome design system with yellow `#eab308` accent color.
 
 ---
 
-## Repository Map
+## Architecture
 
-### 🐍 Backend Python Application
-- **API Entrypoint** ([main.py](backend/app/main.py)): FastAPI server configuration loading environment variables from `.env` on startup via `python-dotenv`, registering endpoint routes, and mounting static storage paths.
-- **NLP Classes Router** ([projects.py](backend/app/api/routes/projects.py)): Handles project operations, weights downloads, NLP class extraction utilizing OpenRouter context manager, and test inference trials.
-- **Training Router** ([training.py](backend/app/api/routes/training.py)): Runs local YOLO inference and manages data splits and the offline PIL background data augmentation worker.
-- **Core Agents** ([app/agents/](backend/app/agents/)):
-  - [autolabel_agent.py](backend/app/agents/autolabel_agent.py) — Runs Grounding DINO zero-shot label proposals.
-  - [train_agent.py](backend/app/agents/train_agent.py) — Launches fine-tuning on the custom dataset.
-  - [eval_agent.py](backend/app/agents/eval_agent.py) — Computes class-wise precision, recall, and mAP metrics.
-  - [export_agent.py](backend/app/agents/export_agent.py) — Exports YOLO weights into a valid ONNX package.
-
-### 💻 Frontend React Application
-- **Style System** ([index.css](frontend/src/index.css)): Glassmorphic dashboard themes, font layouts (Space Grotesk, Inter), and scanner laser scanline animations.
-- **App Shell** ([App.jsx](frontend/src/App.jsx)): Manages stage layout state, webcam streams, and navigates dynamically based on the project's metadata pipeline checkpoints.
-- **Project Loader** ([HomeScreen.jsx](frontend/src/components/HomeScreen.jsx)): Responsive project list dashboard allowing rapid project resumes directly to their next pending pipeline checkpoint.
-- **Ingestion Workbench** ([UploadStage.jsx](frontend/src/components/UploadStage.jsx)): Dual upload/snapshot staging area with native camera selection.
-- **Annotation Workbench** ([AutoLabelStage.jsx](frontend/src/components/AutoLabelStage.jsx)): Triggers and logs Grounding DINO zero-shot extraction.
-- **Training Monitor** ([TrainingMonitor.jsx](frontend/src/components/TrainingMonitor.jsx)): Real-time telemetry monitoring epochs vs training metrics using Recharts.
-- **Testing & Export** ([ExportPanel.jsx](frontend/src/components/ExportPanel.jsx)): Inferencing try-out sandbox rendering pixel bounding box coordinates and code snippets.
+```
+rapid-cv-pipeline/
+├── backend/                      # Python FastAPI server
+│   ├── app/
+│   │   ├── main.py               # FastAPI entrypoint, static mounts
+│   │   ├── api/routes/
+│   │   │   ├── images.py         # Upload & autolabel endpoints
+│   │   │   ├── projects.py       # Project CRUD, NLP class extraction, test inference
+│   │   │   ├── labels.py         # Label read/write endpoints
+│   │   │   ├── training.py       # YOLO training, augmentation, evaluation
+│   │   │   ├── vlm.py            # Interactive per-image VLM query/detect/segment
+│   │   │   └── jobs.py           # Job status polling
+│   │   ├── agents/
+│   │   │   ├── vlm_helper.py     # Moondream 2 lazy loader (MPS / CUDA / CPU)
+│   │   │   ├── autolabel_agent.py # Batch auto-labeling via Moondream detect()
+│   │   │   ├── qc_agent.py       # NMS + confidence filtering + image status bucketing
+│   │   │   ├── input_agent.py    # Image ingestion, deduplication
+│   │   │   ├── augment_agent.py  # Offline augmentation + train/val split
+│   │   │   ├── train_agent.py    # YOLOv8 fine-tuning wrapper
+│   │   │   ├── eval_agent.py     # Per-class precision/recall/mAP evaluation
+│   │   │   └── export_agent.py   # ONNX export + inference_server.py generation
+│   │   ├── jobs/tasks.py         # Background task orchestration
+│   │   └── models/db.py          # SQLAlchemy models (SQLite)
+│   ├── storage/                  # Auto-created: images, labels, datasets, weights
+│   ├── requirements.txt
+│   └── .env                      # OPENROUTER_API_KEY (optional)
+│
+└── frontend/                     # React + Vite application
+    └── src/
+        ├── App.jsx               # Stage router and header
+        ├── index.css             # Design system tokens (monochrome + yellow)
+        └── components/
+            ├── HomeScreen.jsx    # Project dashboard + marketing section
+            ├── ChatOnboarding.jsx # Conversational project setup
+            ├── UploadStage.jsx   # File upload + webcam capture
+            ├── AutoLabelStage.jsx # Moondream auto-label controls
+            ├── LabelReview.jsx   # Canvas annotation editor
+            ├── AugmentSplitStage.jsx # Augmentation + train/val split config
+            ├── TrainingMonitor.jsx # Live training telemetry
+            └── TestDeployStage.jsx # Inference sandbox + deploy/export
+```
 
 ---
 
@@ -47,50 +71,59 @@ The application is completely powered by **real-AI endpoints**—mock toggles ha
 ### Prerequisites
 - **Python**: `3.10` or higher
 - **Node.js**: `18.0` or higher (with npm)
+- **Moondream 2 weights**: Downloaded automatically on first run via `pip install moondream`
+- **Apple Silicon recommended**: MPS acceleration gives ~5–10× speedup over CPU for Moondream inference
 
-### 1. Configuration Setup
-Create a `.env` file in the `backend/` directory to store configuration variables:
+### 1. Configuration (Optional)
+Create a `.env` file in the `backend/` directory for LLM-powered class extraction:
 ```bash
 cd backend
 echo "OPENROUTER_API_KEY=your_openrouter_api_key_here" > .env
 ```
-*(If the key is left empty or omitted, the application will automatically fall back to local regex extraction heuristics.)*
+> If omitted, the app falls back to local regex-based class extraction — auto-labeling still works fully without this key.
 
 ### 2. Backend Server Setup
-1. Open a terminal and navigate to the backend folder:
-   ```bash
-   cd backend
-   ```
-2. Create and activate a Python virtual environment:
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
-   ```
-3. Install required packages:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Start the FastAPI application server:
-   ```bash
-   # Recommended (launches with live reload on port 8000)
-   uvicorn app.main:app --reload
-   
-   # Or run via Python module execution
-   python -m app.main
-   ```
-   *The server runs on `http://127.0.0.1:8000`. API documentation is available at `http://127.0.0.1:8000/docs`.*
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+*Server runs on `http://127.0.0.1:8000`. API docs at `http://127.0.0.1:8000/docs`.*
+
+> **First start note**: The Moondream 2 model weights (~1.7 GB) are downloaded on the first auto-label run and cached locally. Subsequent runs load from cache instantly.
 
 ### 3. Frontend Application Setup
-1. In a new terminal, navigate to the frontend folder:
-   ```bash
-   cd frontend
-   ```
-2. Install npm dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the Vite React development server:
-   ```bash
-   npm run dev
-   ```
-   *Open your browser and navigate to `http://localhost:5173/`.*
+```bash
+cd frontend
+npm install
+npm run dev
+```
+*Open your browser at `http://localhost:5173/`.*
+
+---
+
+## Pipeline Stages
+
+| Stage | Description |
+|-------|-------------|
+| **Chat Onboarding** | Describe what you want to detect in natural language. Classes are extracted automatically. |
+| **Upload** | Drag & drop images or capture via webcam. Images are deduplicated on ingest. |
+| **Auto-Label** | Moondream 2 VLM runs `detect(image, class)` per class per image. Adjust Detection Threshold and NMS IoU sliders for precision/recall control. |
+| **Label Review** | Inspect and correct auto-generated boxes on an interactive canvas. Approve images to proceed. |
+| **Augment & Split** | Configure train/val ratio and offline augmentations (contrast, rotation, crop, mosaic). |
+| **Train** | Fine-tune YOLOv8 locally with live loss/mAP telemetry. |
+| **Test & Deploy** | Run inference on new images, download `best.pt`, export to ONNX. |
+
+---
+
+## Resetting the Database
+
+To clear all projects, images, labels, and trained weights:
+```bash
+cd backend
+rm -f storage/rapid_cv.db
+rm -rf storage/projects/
+```
+The database is recreated automatically on next server start.

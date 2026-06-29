@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import { Stage, Layer, Image as KonvaImage, Rect, Text, Transformer } from 'react-konva';
+import { Stage, Layer, Image as KonvaImage, Rect, Text, Transformer, Line, Path as KonvaPath } from 'react-konva';
 import { Loader2 } from 'lucide-react';
 
-const BoxCanvas = forwardRef(({ imageUrl, initialBoxes, classes, activeClassIndex, confidenceThreshold = 0.0, onSelect }, ref) => {
+const BoxCanvas = forwardRef(({ imageUrl, initialBoxes, classes, activeClassIndex, confidenceThreshold = 0.0, showGrid = false, onSelect }, ref) => {
   const [imgElement, setImgElement] = useState(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [pixelBoxes, setPixelBoxes] = useState([]);
@@ -67,7 +67,8 @@ const BoxCanvas = forwardRef(({ imageUrl, initialBoxes, classes, activeClassInde
         y,
         width: w,
         height: h,
-        confidence: box.confidence
+        confidence: box.confidence,
+        segmentation_path: box.segmentation_path
       };
     });
     
@@ -130,7 +131,8 @@ const BoxCanvas = forwardRef(({ imageUrl, initialBoxes, classes, activeClassInde
             Math.min(1.0, Math.max(0.0, w_norm)),
             Math.min(1.0, Math.max(0.0, h_norm))
           ],
-          confidence: b.confidence
+          confidence: b.confidence,
+          segmentation_path: b.segmentation_path
         };
       });
     },
@@ -157,6 +159,17 @@ const BoxCanvas = forwardRef(({ imageUrl, initialBoxes, classes, activeClassInde
     getSelectedBoxClassName: () => {
       const box = pixelBoxes.find(b => b.id === selectedId);
       return box ? box.class_name : null;
+    },
+    updateSelectedBoxSegmentationPath: (path) => {
+      setPixelBoxes(prev => prev.map(b => {
+        if (b.id === selectedId) {
+          return {
+            ...b,
+            segmentation_path: path
+          };
+        }
+        return b;
+      }));
     },
     getPixelBoxes: () => pixelBoxes,
     getVisibleBoxesCount: () => visibleBoxes.length
@@ -273,6 +286,31 @@ const BoxCanvas = forwardRef(({ imageUrl, initialBoxes, classes, activeClassInde
               height={dimensions.height}
             />
             
+            {showGrid && (
+              <>
+                {[0.2, 0.4, 0.6, 0.8].map((ratio) => (
+                  <Line
+                    key={`grid-v-${ratio}`}
+                    points={[ratio * dimensions.width, 0, ratio * dimensions.width, dimensions.height]}
+                    stroke="#ffffff"
+                    strokeWidth={1}
+                    opacity={0.12}
+                    dash={[3, 3]}
+                  />
+                ))}
+                {[0.2, 0.4, 0.6, 0.8].map((ratio) => (
+                  <Line
+                    key={`grid-h-${ratio}`}
+                    points={[0, ratio * dimensions.height, dimensions.width, ratio * dimensions.height]}
+                    stroke="#ffffff"
+                    strokeWidth={1}
+                    opacity={0.12}
+                    dash={[3, 3]}
+                  />
+                ))}
+              </>
+            )}
+            
             {visibleBoxes.map((box) => {
               const isSelected = box.id === selectedId;
               const colors = [
@@ -286,6 +324,17 @@ const BoxCanvas = forwardRef(({ imageUrl, initialBoxes, classes, activeClassInde
               
               return (
                 <React.Fragment key={box.id}>
+                  {box.segmentation_path && (
+                    <KonvaPath
+                      data={box.segmentation_path}
+                      scaleX={dimensions.width}
+                      scaleY={dimensions.height}
+                      fill={isSelected ? `${activeColor.rect}4c` : `${activeColor.rect}22`}
+                      stroke={activeColor.rect}
+                      strokeWidth={1.5 / dimensions.width}
+                      listening={false}
+                    />
+                  )}
                   <Rect
                     id={box.id}
                     x={box.x}

@@ -217,17 +217,17 @@ export default function AugmentSplitStage({ projectId, projectName, onNext, onBa
                     className={`aug-card cursor-pointer select-none ${isOn ? 'enabled' : ''}`}
                   >
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                      isOn ? 'bg-[#7c3aed]/20 border border-[#7c3aed]/40' : 'bg-white/[0.05] border border-white/[0.08]'
+                      isOn ? 'bg-[#eab308]/20 border border-[#eab308]/40' : 'bg-white/[0.05] border border-white/[0.08]'
                     }`}>
-                      <Icon className={`w-4.5 h-4.5 ${isOn ? 'text-[#a78bfa]' : 'text-white/30'}`} style={{ width: 18, height: 18 }} />
+                      <Icon className={`w-4.5 h-4.5 ${isOn ? 'text-[#eab308]' : 'text-white/30'}`} style={{ width: 18, height: 18 }} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <p className={`text-sm font-bold ${isOn ? 'text-white' : 'text-white/50'}`}>{opt.label}</p>
                         <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
-                          isOn ? 'bg-[#7c3aed] border-[#7c3aed]' : 'border-white/20'
+                          isOn ? 'bg-[#eab308] border-[#eab308]' : 'border-white/20'
                         }`}>
-                          {isOn && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+                          {isOn && <Check className="w-2.5 h-2.5 text-black font-black" strokeWidth={3} />}
                         </div>
                       </div>
                       <p className={`text-xs mt-0.5 ${isOn ? 'text-white/50' : 'text-white/25'}`}>{opt.desc}</p>
@@ -240,9 +240,9 @@ export default function AugmentSplitStage({ projectId, projectName, onNext, onBa
                             step={opt.sliderStep}
                             value={sliderVals[opt.sliderKey]}
                             onChange={e => setSliderVals(prev => ({ ...prev, [opt.sliderKey]: parseFloat(e.target.value) }))}
-                            className="flex-1 h-1 accent-purple-500 bg-white/10 rounded-lg cursor-pointer"
+                            className="flex-1 h-1 accent-yellow-500 bg-white/10 rounded-lg cursor-pointer"
                           />
-                          <span className="text-xs text-purple-400 font-mono w-10 text-right">
+                          <span className="text-xs text-yellow-500 font-mono w-10 text-right">
                             {opt.sliderLabel(sliderVals[opt.sliderKey])}
                           </span>
                         </div>
@@ -263,13 +263,13 @@ export default function AugmentSplitStage({ projectId, projectName, onNext, onBa
             <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5 space-y-4">
               {/* Visual bar */}
               <div className="flex h-3 rounded-full overflow-hidden">
-                <div className="bg-[#7c3aed] transition-all duration-300" style={{ width: `${split.train}%` }} />
+                <div className="bg-[#eab308] transition-all duration-300" style={{ width: `${split.train}%` }} />
                 <div className="bg-[#3b82f6] transition-all duration-300" style={{ width: `${split.val}%` }} />
                 <div className="bg-[#4edea3] transition-all duration-300" style={{ width: `${split.test}%` }} />
               </div>
 
               {[
-                { key: 'train', label: 'Train', color: 'text-[#a78bfa]', bg: 'bg-[#7c3aed]' },
+                { key: 'train', label: 'Train', color: 'text-[#eab308]', bg: 'bg-[#eab308]' },
                 { key: 'val',   label: 'Validation', color: 'text-blue-400', bg: 'bg-blue-500' },
                 { key: 'test',  label: 'Test', color: 'text-emerald-400', bg: 'bg-emerald-500' },
               ].map(({ key, label, color, bg }) => (
@@ -281,7 +281,7 @@ export default function AugmentSplitStage({ projectId, projectName, onNext, onBa
                     min={5} max={90} step={5}
                     value={split[key]}
                     onChange={e => handleSplitChange(key, e.target.value)}
-                    className={`flex-1 h-1 rounded-lg cursor-pointer accent-purple-500`}
+                    className={`flex-1 h-1 rounded-lg cursor-pointer accent-yellow-500`}
                   />
                   <span className={`text-sm font-bold ${color} w-12 text-right font-mono`}>
                     {split[key]}%
@@ -308,10 +308,10 @@ export default function AugmentSplitStage({ projectId, projectName, onNext, onBa
                 <span className="text-sm font-bold text-white">
                   {jobStatus === 'queued' ? 'Queuing...' : jobStatus === 'running' ? 'Processing augmentations...' : 'Finishing...'}
                 </span>
-                <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+                <Loader2 className="w-4 h-4 animate-spin text-yellow-500" />
               </div>
               <div className="w-full h-2 bg-white/[0.08] rounded-full">
-                <div className="h-2 bg-[#7c3aed] rounded-full transition-all duration-500" style={{ width: `${jobProgress}%` }} />
+                <div className="h-2 bg-[#eab308] rounded-full transition-all duration-500" style={{ width: `${jobProgress}%` }} />
               </div>
               <span className="text-white/30 text-xs mt-1 block text-right font-mono">{jobProgress}%</span>
             </div>

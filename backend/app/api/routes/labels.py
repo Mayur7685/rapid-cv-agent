@@ -23,6 +23,7 @@ class BoundingBoxInput(BaseModel):
     class_name: str
     bbox: List[float] # [x_center, y_center, width, height] normalized
     confidence: Optional[float] = None
+    segmentation_path: Optional[str] = None
 
 class LabelReviewSubmission(BaseModel):
     labels: List[BoundingBoxInput]
@@ -52,7 +53,8 @@ def get_project_labels(project_id: int, image_id: Optional[int] = None, db: Sess
                 "class_name": l.class_name,
                 "bbox": l.bbox,
                 "confidence": l.confidence,
-                "source": l.source
+                "source": l.source,
+                "segmentation_path": l.segmentation_path
             } for l in labels]
         }
     else:
@@ -70,7 +72,8 @@ def get_project_labels(project_id: int, image_id: Optional[int] = None, db: Sess
                     "class_name": l.class_name,
                     "bbox": l.bbox,
                     "confidence": l.confidence,
-                    "source": l.source
+                    "source": l.source,
+                    "segmentation_path": l.segmentation_path
                 } for l in labels]
             }
         return result
@@ -99,7 +102,8 @@ def review_image_labels(
             class_id=box.class_id,
             class_name=box.class_name,
             confidence=box.confidence,
-            source="human" # Promoted to human-reviewed
+            source="human", # Promoted to human-reviewed
+            segmentation_path=box.segmentation_path
         )
         db_label.bbox = box.bbox
         db.add(db_label)
@@ -127,7 +131,8 @@ def review_image_labels(
         "class_name": l.class_name,
         "bbox": l.bbox,
         "confidence": l.confidence,
-        "source": l.source
+        "source": l.source,
+        "segmentation_path": l.segmentation_path
     } for l in labels]
     
     # Read width/height from original image if possible to keep JSON consistent

@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.models.db import init_db
-from app.api.routes import projects, images, labels, jobs, training
+from app.api.routes import projects, images, labels, jobs, training, vlm
 
 # Initialize FastAPI application
 app = FastAPI(
@@ -46,6 +46,7 @@ app.include_router(images.router, prefix="/api")
 app.include_router(labels.router, prefix="/api")
 app.include_router(jobs.router, prefix="/api")
 app.include_router(training.router, prefix="/api")
+app.include_router(vlm.router, prefix="/api")
 
 @app.get("/")
 def read_root():

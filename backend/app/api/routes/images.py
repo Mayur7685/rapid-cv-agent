@@ -21,6 +21,9 @@ def get_db():
 
 class AutolabelRequest(BaseModel):
     use_mock: Optional[bool] = False
+    model: Optional[str] = "grounding_dino"          # only grounding_dino is supported
+    box_threshold: Optional[float] = 0.35             # DINO detection confidence gate
+    nms_iou: Optional[float] = 0.45                   # duplicate-box suppression IoU
 
 @router.get("/{project_id}/images")
 def list_images(project_id: int, db: Session = Depends(get_db)):
@@ -119,7 +122,10 @@ def trigger_autolabel(
         background_autolabel_task,
         job_id=job_id,
         project_id=project_id,
-        use_mock=data.use_mock
+        model=data.model,
+        use_mock=data.use_mock,
+        box_threshold=data.box_threshold,
+        nms_iou_threshold=data.nms_iou,
     )
 
     return {"message": "Auto-labeling job queued successfully", "job_id": job_id}

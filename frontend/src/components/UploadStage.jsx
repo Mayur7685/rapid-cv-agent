@@ -1,10 +1,14 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { Upload, Camera, Tag, X, Plus, Trash2, Loader2, ArrowRight, ArrowLeft, Folder, Search, Sparkles } from 'lucide-react';
 import GuidancePanel from './GuidancePanel';
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 
 const API_BASE = 'http://127.0.0.1:8000/api';
 
-const CLASS_COLORS = ['bg-violet-500', 'bg-blue-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-cyan-500', 'bg-yellow-500', 'bg-red-500'];
+const CLASS_COLORS = ['bg-yellow-500', 'bg-blue-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-cyan-500', 'bg-violet-500', 'bg-red-500'];
 
 export default function UploadStage({
   projectId, projectName, projectClasses, onClassesChange, onNext, onBack
@@ -17,6 +21,7 @@ export default function UploadStage({
   const [uploadDone, setUploadDone] = useState(false);
   const [uploadResult, setUploadResult] = useState(null);
   const [dragOver, setDragOver] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
 
   // Webcam stream states
   const [webcamActive, setWebcamActive] = useState(false);
@@ -91,6 +96,42 @@ export default function UploadStage({
     const updated = classes.filter(c => c !== cls);
     setClasses(updated);
     onClassesChange?.(updated);
+  };
+
+  const handleVlmSuggestClasses = async () => {
+    setSuggesting(true);
+    try {
+      // 1. Fetch images for this project
+      const imgRes = await fetch(`${API_BASE}/projects/${projectId}/images`);
+      const imgs = await imgRes.json();
+      if (imgs.length === 0) {
+        alert("Please upload and ingest at least one image first to run class suggestions.");
+        return;
+      }
+      
+      // 2. Query the first image for class suggestions
+      const targetImageId = imgs[0].id;
+      const res = await fetch(`${API_BASE}/vlm/${projectId}/images/${targetImageId}/suggest-classes`, {
+        method: 'POST'
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      
+      if (data.suggested_classes && data.suggested_classes.length > 0) {
+        let updated = [...classes];
+        data.suggested_classes.forEach(c => {
+          if (!updated.includes(c)) updated.push(c);
+        });
+        setClasses(updated);
+        onClassesChange?.(updated);
+      } else {
+        alert("Local VLM did not return any distinct class suggestions.");
+      }
+    } catch (e) {
+      alert("Failed to auto-suggest classes: " + e.message);
+    } finally {
+      setSuggesting(false);
+    }
   };
 
   const addFiles = (files) => {
@@ -195,7 +236,7 @@ export default function UploadStage({
           onDrop={handleDrop}
           className={`w-full max-w-2xl border-2 border-dashed rounded-2xl p-12 flex flex-col items-center justify-center min-h-[360px] transition-all duration-200 ${
             dragOver
-              ? 'border-[#7c3aed] bg-purple-500/5'
+              ? 'border-[#eab308] bg-yellow-500/5'
               : uploadDone
               ? 'border-emerald-500/40 bg-emerald-500/5'
               : 'border-white/[0.12] bg-white/[0.02] hover:border-white/20'
@@ -223,7 +264,7 @@ export default function UploadStage({
                   </>
                 ) : (
                   <>
-                    <button onClick={captureFrame} className="px-4 py-2 bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold rounded-xl text-xs">
+                    <button onClick={captureFrame} className="px-4 py-2 bg-[#eab308] hover:bg-[#ca8a04] text-black font-extrabold rounded-xl text-xs cursor-pointer">
                       Take Photo
                     </button>
                     <button onClick={stopWebcam} className="px-4 py-2 border border-white/10 text-white hover:bg-white/5 font-bold rounded-xl text-xs">
@@ -280,33 +321,33 @@ export default function UploadStage({
 
         {/* Bottom action bar */}
         <div className="absolute bottom-6 left-8 right-0 flex items-center gap-3">
-          <button onClick={onBack} className="btn-secondary flex items-center gap-2 text-xs">
+          <Button onClick={onBack} variant="outline" className="flex items-center gap-2 text-xs cursor-pointer">
             <ArrowLeft className="w-3.5 h-3.5" /> Back
-          </button>
+          </Button>
           {uploadDone ? (
-            <button
+            <Button
               onClick={() => onNext(projectId, projectName)}
-              className="btn-primary flex items-center gap-2 text-xs shadow-lg shadow-purple-500/25"
+              className="bg-[#eab308] hover:bg-[#ca8a04] text-black font-extrabold flex items-center gap-2 text-xs shadow-lg shadow-yellow-500/10 cursor-pointer"
             >
               Start Auto-Labeling <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
               onClick={handleUpload}
               disabled={stagedFiles.length === 0 || uploading}
-              className="btn-primary flex items-center gap-2 text-xs disabled:opacity-50 shadow-lg shadow-purple-500/25"
+              className="bg-[#eab308] hover:bg-[#ca8a04] text-black font-extrabold flex items-center gap-2 text-xs disabled:opacity-50 shadow-lg shadow-yellow-500/10 cursor-pointer"
             >
-              {uploading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...</> : <><Upload className="w-3.5 h-3.5" /> Upload {stagedFiles.length > 0 ? `${stagedFiles.length} Files` : 'Files'}</>}
-            </button>
+              {uploading ? <><Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> Uploading...</> : <><Upload className="w-3.5 h-3.5 mr-1.5" /> Upload {stagedFiles.length > 0 ? `${stagedFiles.length} Files` : 'Files'}</>}
+            </Button>
           )}
         </div>
       </main>
 
       {/* ── Right: Ontology Builder (Guidance Panel) ── */}
-      <aside className="w-64 guidance-panel p-4 flex flex-col gap-4 overflow-y-auto">
+      <aside className="w-64 guidance-panel p-4 flex flex-col gap-4 overflow-y-auto bg-white border-l border-gray-100">
         <div className="border-b border-gray-100 pb-3">
           <div className="flex items-center gap-2 text-gray-800 font-bold text-sm">
-            <Tag className="w-4 h-4 text-purple-500" />
+            <Tag className="w-4 h-4 text-yellow-600" />
             What objects are you looking for?
           </div>
           <p className="text-gray-400 text-xs mt-1">Powered by Grounding DINO</p>
@@ -315,28 +356,47 @@ export default function UploadStage({
         {/* Add class */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300" />
-          <input
+          <Input
             type="text"
             value={newClass}
             onChange={e => setNewClass(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddClass(); }}}
             placeholder="Add class (e.g. helmet)"
-            className="w-full pl-9 pr-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl text-gray-700 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all placeholder-gray-300"
+            className="w-full pl-9 pr-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl text-gray-700 outline-none focus-visible:ring-yellow-200"
           />
         </div>
+
+        {/* Suggest classes from local VLM */}
+        {projectId && (
+          <Button
+            type="button"
+            onClick={handleVlmSuggestClasses}
+            disabled={suggesting}
+            variant="outline"
+            className="w-full py-2 bg-yellow-50 hover:bg-yellow-100/50 disabled:opacity-50 text-yellow-800 font-bold text-[10px] rounded-lg border border-yellow-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            {suggesting ? (
+              <><Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> Analyzing...</>
+            ) : (
+              <><Sparkles className="w-3.5 h-3.5 animate-pulse text-yellow-600 mr-1.5" /> VLM Auto-Suggest Classes</>
+            )}
+          </Button>
+        )}
 
         {/* Suggestions */}
         <div>
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Try these:</p>
           <div className="flex flex-wrap gap-1.5">
             {suggestions.filter(s => !classes.includes(s)).slice(0, 6).map(s => (
-              <button
+              <Button
                 key={s}
+                variant="outline"
+                size="sm"
                 onClick={() => handleAddClass(s)}
-                className="px-2.5 py-1 border border-gray-200 rounded-full text-[11px] text-gray-500 hover:border-purple-300 hover:text-purple-600 transition-all"
+                className="h-7 px-2.5 rounded-full text-[11px] text-gray-500 hover:border-yellow-400 hover:text-yellow-700 transition-all cursor-pointer"
               >
                 + {s}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -349,26 +409,31 @@ export default function UploadStage({
               <p className="text-xs text-gray-300 italic">No classes yet</p>
             ) : (
               classes.map((cls, i) => (
-                <div key={cls} className="flex items-center justify-between p-2.5 bg-gray-50 border border-gray-200 rounded-xl group">
+                <Card key={cls} className="flex items-center justify-between p-2.5 bg-gray-50 border border-gray-200 rounded-xl group relative">
                   <div className="flex items-center gap-2">
                     <div className={`w-2.5 h-2.5 rounded-full ${CLASS_COLORS[i % CLASS_COLORS.length]}`} />
                     <span className="text-xs font-semibold text-gray-700">{cls}</span>
                   </div>
-                  <button onClick={() => handleRemoveClass(cls)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-all">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleRemoveClass(cls)}
+                    className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all p-0 h-6 w-6 cursor-pointer"
+                  >
                     <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                  </Button>
+                </Card>
               ))
             )}
           </div>
         </div>
 
-        <div className="mt-auto p-3 bg-purple-50 border border-purple-100 rounded-xl">
-          <p className="text-[11px] text-purple-700 font-semibold leading-relaxed">
+        <div className="mt-auto p-3 bg-yellow-50 border border-yellow-100 rounded-xl">
+          <p className="text-[11px] text-yellow-800 font-semibold leading-relaxed">
             💡 Upload 20–50 images per class for best results. You can always add more later.
           </p>
         </div>
       </aside>
-    </div>
+      </div>
   );
 }

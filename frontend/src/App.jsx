@@ -53,20 +53,20 @@ export default function App() {
 
       {/* ── Top Bar ── */}
       <header className={`sticky top-0 z-50 ${isPrePipeline
-        ? 'bg-white/80 border-b border-purple-100 backdrop-blur-md'
-        : 'bg-[#0a0f1c]/90 border-b border-white/[0.07] backdrop-blur-md'
+        ? 'bg-white/80 border-b border-neutral-200 backdrop-blur-md'
+        : 'bg-[#090a0f]/90 border-b border-white/[0.07] backdrop-blur-md'
       }`}>
         <div className="w-full px-6 h-12 flex items-center justify-between">
           {/* Logo */}
           <button
             onClick={() => handleNavigate('home')}
-            className="flex items-center gap-2.5 group"
+            className="flex items-center gap-2.5 group cursor-pointer"
           >
-            <div className="w-7 h-7 bg-[#7c3aed] rounded-lg flex items-center justify-center shadow-md group-hover:shadow-purple-500/30 transition-all">
-              <Cpu className="w-4 h-4 text-white" />
+            <div className="w-7 h-7 bg-[#eab308] rounded-lg flex items-center justify-center shadow-md group-hover:shadow-yellow-500/30 transition-all">
+              <Cpu className="w-4 h-4 text-black font-bold" />
             </div>
             <span className={`font-bold text-sm tracking-tight ${isPrePipeline ? 'text-gray-900' : 'text-white'}`}>
-              Rapid<span className="text-[#7c3aed]">CV</span>
+              Rapid<span className="text-[#eab308]">CV</span>
             </span>
           </button>
 

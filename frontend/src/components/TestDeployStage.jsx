@@ -8,8 +8,8 @@ import {
 const API_BASE = 'http://127.0.0.1:8000/api';
 
 const CLASS_COLORS_HEX = [
-  '#7c3aed', '#3b82f6', '#10b981', '#f97316',
-  '#ec4899', '#06b6d4', '#eab308', '#ef4444'
+  '#eab308', '#3b82f6', '#10b981', '#f97316',
+  '#ec4899', '#06b6d4', '#7c3aed', '#ef4444'
 ];
 
 function useClassColors(classes) {
@@ -59,7 +59,7 @@ function InferenceCanvas({ imageUrl, detections, classes, confidence, opacity = 
         const top = scale(y1, 'y');
         const width = scale(x2 - x1, 'x');
         const height = scale(y2 - y1, 'y');
-        const color = colorMap[det.class_name] || '#7c3aed';
+        const color = colorMap[det.class_name] || '#eab308';
         return (
           <div key={i} className="detection-box" style={{ left, top, width, height, borderColor: color }}>
             <div className="detection-label" style={{ background: color, color: '#fff', fontSize: 10 }}>
@@ -198,13 +198,13 @@ export default function TestDeployStage({
 
           {testImageUrl && (
             <div className="space-y-2">
-              <div className="relative rounded-xl overflow-hidden border border-purple-500/30">
+              <div className="relative rounded-xl overflow-hidden border border-yellow-500/30">
                 <img src={testImageUrl} alt="" className="w-full h-24 object-cover" />
               </div>
               <button
                 onClick={handleInfer}
                 disabled={inferencing}
-                className="w-full py-2 bg-[#7c3aed] hover:bg-[#6d28d9] disabled:bg-white/10 disabled:text-white/30 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md shadow-purple-500/20"
+                className="w-full py-2 bg-[#eab308] hover:bg-[#ca8a04] disabled:bg-white/10 disabled:text-white/30 text-black font-extrabold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md shadow-yellow-500/10 cursor-pointer"
               >
                 {inferencing ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Running...</> : <><Zap className="w-3.5 h-3.5" /> Run Inference</>}
               </button>
@@ -235,9 +235,9 @@ export default function TestDeployStage({
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`text-xs font-bold capitalize transition-colors pb-0.5 border-b-2 ${
+              className={`text-xs font-bold capitalize transition-colors pb-0.5 border-b-2 cursor-pointer ${
                 activeTab === tab
-                  ? 'text-white border-[#7c3aed]'
+                  ? 'text-white border-[#eab308]'
                   : 'text-white/30 border-transparent hover:text-white/60'
               }`}
             >
@@ -336,8 +336,8 @@ export default function TestDeployStage({
                         <button
                           key={tab}
                           onClick={() => setCodeTab(tab)}
-                          className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
-                            codeTab === tab ? 'bg-[#7c3aed] text-white' : 'text-white/40 hover:text-white/70'
+                          className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                            codeTab === tab ? 'bg-[#eab308] text-black' : 'text-white/40 hover:text-white/70'
                           }`}
                         >
                           {tab === 'python' ? 'Python' : tab === 'curl' ? 'cURL' : 'JavaScript'}
@@ -346,7 +346,7 @@ export default function TestDeployStage({
                     </div>
                   </div>
                   <div className="relative">
-                    <pre className="p-5 text-xs font-mono text-[#a78bfa] overflow-x-auto bg-[#060b14] leading-relaxed">
+                    <pre className="p-5 text-xs font-mono text-[#fef08a] overflow-x-auto bg-[#050505] border border-white/[0.04] leading-relaxed">
                       {CODE_SNIPPETS[codeTab](projectId)}
                     </pre>
                     <button
@@ -390,7 +390,7 @@ export default function TestDeployStage({
         <aside className="w-64 guidance-panel flex flex-col overflow-y-auto">
           <div className="p-4 border-b border-gray-100">
             <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-purple-500" />
+              <Sliders className="w-4 h-4 text-yellow-600" />
               Model Visualizations
             </h3>
           </div>
@@ -405,12 +405,12 @@ export default function TestDeployStage({
               <div key={label} className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-xs font-semibold text-gray-600">{label}</span>
-                  <span className="text-xs font-bold text-purple-600">{fmt(val)}</span>
+                  <span className="text-xs font-bold text-yellow-750">{fmt(val)}</span>
                 </div>
                 <input
                   type="range" min={min} max={max} step={step}
                   value={val} onChange={e => set(parseFloat(e.target.value))}
-                  className="w-full h-1.5 accent-purple-600 bg-gray-200 rounded-lg cursor-pointer"
+                  className="w-full h-1.5 accent-yellow-500 bg-gray-200 rounded-lg cursor-pointer"
                 />
               </div>
             ))}
@@ -420,7 +420,7 @@ export default function TestDeployStage({
               <select
                 value={labelDisplay}
                 onChange={e => setLabelDisplay(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl text-gray-700 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
+                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl text-gray-700 outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 cursor-pointer"
               >
                 <option value="confidence">Draw Confidence</option>
                 <option value="class">Class Name Only</option>
@@ -440,12 +440,12 @@ export default function TestDeployStage({
           </div>
 
           <div className="p-4 border-t border-gray-100 space-y-2">
-            <button onClick={onBack} className="w-full py-2 text-xs border border-gray-200 text-gray-500 rounded-xl hover:bg-gray-50 font-semibold flex items-center justify-center gap-1">
+            <button onClick={onBack} className="w-full py-2 text-xs border border-gray-200 text-gray-500 rounded-xl hover:bg-gray-50 font-semibold flex items-center justify-center gap-1 cursor-pointer">
               <ArrowLeft className="w-3 h-3" /> Back to Training
             </button>
             <button
               onClick={() => setActiveTab('deploy')}
-              className="w-full py-2 bg-[#7c3aed] text-white text-xs rounded-xl font-bold hover:bg-[#6d28d9] transition-colors"
+              className="w-full py-2 bg-[#eab308] text-black text-xs rounded-xl font-extrabold hover:bg-[#ca8a04] transition-colors cursor-pointer"
             >
               🚀 Deploy API
             </button>
